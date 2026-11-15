@@ -2450,6 +2450,7 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"mi,mdss-dsi-cabcoff-command",
 	"mi,mdss-dsi-disable-insert-black-command",
 	"mi,mdss-dsi-insert-black-screen-command",
+	"mi,mdss-dsi-set-csc-command",
 #endif
 };
 
@@ -2708,6 +2709,7 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"mi,mdss-dsi-cabcoff-command-state",
 	"mi,mdss-dsi-disable-insert-black-command-state",
 	"mi,mdss-dsi-insert-black-screen-command-state",
+	"mi,mdss-dsi-set-csc-command-state",
 };
 
 const char *cmd_set_update_map[DSI_CMD_UPDATE_MAX] = {
@@ -2753,6 +2755,7 @@ const char *cmd_set_update_map[DSI_CMD_UPDATE_MAX] = {
 	"mi,mdss-dsi-peak-gamma-read-pre-command-update",
 	"mi,mdss-dsi-dbv-327-to-326-command-update",
 	"mi,mdss-dsi-dbv-326-to-327-command-update",
+	"mi,mdss-dsi-set-csc-command-update",
 #endif
 };
 
@@ -6416,6 +6419,18 @@ int dsi_panel_enable(struct dsi_panel *panel)
 			DSI_ERR("[%s] failed to send DSI_CMD_SET_MI_1129 cmds, rc=%d\n",
 				panel->name, rc);
 			goto error;
+		}
+	}
+	if (mi_get_panel_id_by_dsi_panel(panel) == O11_PANEL_PA) {
+		if (panel->mi_cfg.feature_val[DISP_FEATURE_DBI] !=
+				panel->mi_cfg.real_dbi_state) {
+			mi_dsi_panel_set_csc_by_temp_locked(panel,
+				panel->mi_cfg.feature_val[DISP_FEATURE_DBI]);
+		} else {
+			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_CSC);
+			if (rc)
+				DSI_ERR("[%s] failed to send DSI_CMD_SET_CSC cmds, rc=%d\n",
+					panel->name, rc);
 		}
 	}
 	if (mi_get_panel_id_by_dsi_panel(panel) == N18_PANEL_SA &&

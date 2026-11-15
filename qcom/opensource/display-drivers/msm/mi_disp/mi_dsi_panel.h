@@ -316,6 +316,8 @@ int mi_dsi_panel_set_dbi_3dlut_by_temp(struct dsi_panel *panel, int temp_val);
 int mi_dsi_panel_set_dbi_3dlut_by_temp_locked(struct dsi_panel *panel,
                                               int temp_val);
 
+int mi_dsi_panel_set_csc_by_temp_locked(struct dsi_panel *panel, int temp_val);
+
 int mi_dsi_update_switch_cmd_N3(struct dsi_panel *panel, u32 cmd_update_index,
                                 u32 index);
 

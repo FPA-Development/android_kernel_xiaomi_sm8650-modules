@@ -3458,6 +3458,51 @@ int mi_dsi_panel_set_dbi_by_temp(struct dsi_panel *panel, int temp_val) {
 
   return rc;
 }
+
+int mi_dsi_panel_set_csc_by_temp_locked(struct dsi_panel *panel,
+                                        int temp_val) {
+  int rc = 0;
+  int real_temp_val = temp_val;
+  struct mi_dsi_panel_cfg *mi_cfg = NULL;
+  struct dsi_display_mode *cur_mode = NULL;
+  struct dsi_cmd_update_info *info = NULL;
+  u8 csc_reg_val[2] = {0x02, 0x1C};
+  int csc_min_temp = 28, csc_max_temp = 45;
+
+  if (!panel || !panel->cur_mode || !panel->cur_mode->priv_info) {
+    DISP_ERROR("invalid params\n");
+    return -EINVAL;
+  }
+
+  if (real_temp_val < csc_min_temp)
+    real_temp_val = csc_min_temp;
+  else if (real_temp_val > csc_max_temp)
+    real_temp_val = csc_max_temp;
+
+  mi_cfg = &panel->mi_cfg;
+  cur_mode = panel->cur_mode;
+  info = cur_mode->priv_info->cmd_update[DSI_CMD_SET_CSC_UPDATE];
+  if (!info) {
+    DISP_ERROR("invalid cmd update info\n");
+    return -EINVAL;
+  }
+  csc_reg_val[1] += (real_temp_val - csc_min_temp);
+  rc = mi_dsi_panel_update_cmd_set(panel, cur_mode, DSI_CMD_SET_CSC, info,
+                                   csc_reg_val, sizeof(csc_reg_val));
+  if (rc) {
+    DSI_ERR("[%s] failed to update DSI_CMD_SET_CSC cmds, rc=%d\n",
+            panel->name, rc);
+  }
+  rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_CSC);
+  if (rc) {
+    DSI_ERR("[%s] failed to send DSI_CMD_SET_CSC cmds, rc=%d\n",
+            panel->name, rc);
+  }
+  DISP_INFO("set csc reg[1] 0x%x real_temp_val %d\n", csc_reg_val[1],
+            real_temp_val);
+  mi_cfg->real_dbi_state = real_temp_val;
+  return rc;
+}
 int mi_dsi_panel_set_dbi_3dlut_by_temp(struct dsi_panel *panel,
                                        int temp_level) {
   int rc = 0;
@@ -5078,6 +5123,9 @@ int mi_dsi_panel_set_disp_param(struct dsi_panel *panel,
                mi_get_panel_id_by_dsi_panel(panel) == O16U_PANEL_PA) {
       DISP_INFO("by temp gray_level:%d\n", ctl->feature_val);
       mi_dsi_panel_set_dbi_3dlut_by_temp_locked(panel, ctl->feature_val);
+      mi_cfg->feature_val[DISP_FEATURE_DBI] = ctl->feature_val;
+    } else if (mi_get_panel_id_by_dsi_panel(panel) == O11_PANEL_PA) {
+      mi_dsi_panel_set_csc_by_temp_locked(panel, ctl->feature_val);
       mi_cfg->feature_val[DISP_FEATURE_DBI] = ctl->feature_val;
     } else {
       DISP_INFO("by temp gray_level:%d\n", ctl->feature_val);
