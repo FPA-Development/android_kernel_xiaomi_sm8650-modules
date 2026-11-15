@@ -359,25 +359,9 @@ ifeq ($(CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE), y)
 			obj-$(CONFIG_MSM_TOUCH) += xiaomi_touch.o
 endif
 
-ifeq ($(CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE_V2), y)
+ifeq ($(CONFIG_TOUCHSCREEN_FOCALTECH_3683), y)
 	KBUILD_CPPFLAGS += -DTOUCH_THP_SUPPORT
 	KBUILD_CPPFLAGS += -DTOUCH_FOD_SUPPORT
-
-	xiaomi_touch-y := \
-		./xiaomi_v2/xiaomi_touch_knock_data.o \
-		./xiaomi_v2/xiaomi_touch_core.o \
-		./xiaomi_v2/xiaomi_touch_proc.o \
-		./xiaomi_v2/xiaomi_touch_operations.o \
-		./xiaomi_v2/xiaomi_touch_sys.o \
-		./xiaomi_v2/xiaomi_touch_mode.o \
-		./xiaomi_v2/xiaomi_touch_evdev.o \
-		./xiaomi_v2/xiaomi_touch_device.o \
-		./xiaomi_v2/xiaomi_touch_mievent.o
-
-	obj-$(CONFIG_MSM_TOUCH) += xiaomi_touch.o
-endif
-
-ifeq ($(CONFIG_TOUCHSCREEN_FOCALTECH_3683), y)
 	KBUILD_CPPFLAGS += -DTOUCH_GESTURE_ALWAYSON_SUPPORT
 	focaltech_touch-y := \
 		./focaltech_3683/focaltech_core.o \
