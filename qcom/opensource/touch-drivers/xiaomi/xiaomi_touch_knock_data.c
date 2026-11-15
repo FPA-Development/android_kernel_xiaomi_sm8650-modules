@@ -133,7 +133,7 @@ end_set_value:
 	}
 
 	/* send frame count to thp */
-	add_common_data_to_buf(0, SET_CUR_VALUE, DATA_MODE_57, 1, &knock_data.need_frame_count);
+	add_common_data_to_buf(0, SET_CUR_VALUE, DATA_MODE_75, 1, &knock_data.need_frame_count);
 
 	return count;
 }
@@ -218,7 +218,7 @@ int knock_node_init(void)
 			goto error_alloc_memory;
 		}
 		knock_data.phy_base = virt_to_phys(knock_data.raw_data);
-		LOG_INFO("%s: %s: raw data addr:%lld, phy addr:%lld\n", KNOCK_TAG, __func__,
+		LOG_INFO("%s: %s: raw data addr:%lu, phy addr:%lld\n", KNOCK_TAG, __func__,
 			(unsigned long)knock_data.raw_data, (unsigned long)knock_data.phy_base);
 	}
 

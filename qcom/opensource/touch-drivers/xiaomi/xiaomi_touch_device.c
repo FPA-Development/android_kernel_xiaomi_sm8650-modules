@@ -264,7 +264,7 @@ EXPORT_SYMBOL_GPL(unregister_xiaomi_stylus_input_dev);
 
 static struct input_dev *report_finger_event(s8 touch_id, hal_report_piont_t *report_point)
 {
-	static u16 finger_report_point_bitmap = 0;
+	static unsigned long finger_report_point_bitmap = 0;
 	struct input_dev *input_dev = input_devs[touch_id];
 	if (input_dev == NULL) {
 		LOG_INFO("touch id %d input device is empty ,fail to report!", touch_id);
@@ -279,11 +279,11 @@ static struct input_dev *report_finger_event(s8 touch_id, hal_report_piont_t *re
 		input_report_abs(input_dev, ABS_MT_POSITION_Y, report_point->finger.y);
 		input_report_abs(input_dev, ABS_MT_TOUCH_MAJOR, report_point->finger.prop[FINGER_MAJOR]);
 		input_report_abs(input_dev, ABS_MT_TOUCH_MINOR, report_point->finger.prop[FINGER_MINOR]);
-		__set_bit(report_point->finger.prop[FINGER_SLOT], (unsigned long *)&finger_report_point_bitmap);
+		__set_bit(report_point->finger.prop[FINGER_SLOT], &finger_report_point_bitmap);
 	} else {
 		input_mt_slot(input_dev, report_point->finger.prop[FINGER_SLOT]);
 		input_mt_report_slot_state(input_dev, MT_TOOL_FINGER, 0);
-		__clear_bit(report_point->finger.prop[FINGER_SLOT], (unsigned long *)&finger_report_point_bitmap);
+		__clear_bit(report_point->finger.prop[FINGER_SLOT], &finger_report_point_bitmap);
 	}
 	if (finger_report_point_bitmap == 0) {
 		input_report_key(input_dev, BTN_TOUCH, 0);

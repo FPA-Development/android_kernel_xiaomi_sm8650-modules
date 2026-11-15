@@ -1451,61 +1451,61 @@ static void syna_tcm_set_cur_value(int mode, int *value)
 		LOGN("wait finished, its time to go ahead");
 	}
 #endif
-	if (mode != DATA_MODE_134)
+	if (mode != DATA_MODE_153)
 		LOGI("mode:%d,value:%d\n", mode, value[0]);
 	else
 		LOGD("mode:%d,value:%d\n", mode, value[0]);
 #ifdef TOUCH_THP_SUPPORT
-	if (mode == DATA_MODE_44) {
+	if (mode == DATA_MODE_62) {
 		syna_set_ic_mode(ENTER_IDLE_MODE, value);
 		return;
 	}
-	if (mode == DATA_MODE_45) {
+	if (mode == DATA_MODE_63) {
 		if (tcm_hcd->enable_touch_raw)
 			syna_set_fod_downup(tcm_hcd, value[0]);
 		return;
 	}
-	if (mode == DATA_MODE_127) {
+	if (mode == DATA_MODE_146) {
 		if (tcm_hcd->enable_touch_raw)
 			syna_set_ic_mode(SET_DOZE_WAKEUP_THRESHOLD, value);
 		return;
 	}
-	if (mode == DATA_MODE_46) {
+	if (mode == DATA_MODE_64) {
 		//TODO
 		return;
 	}
-	if (mode == DATA_MODE_47) {
+	if (mode == DATA_MODE_65) {
 		//TODO
 		return;
 	}
-	if (mode == DATA_MODE_48) {
+	if (mode == DATA_MODE_66) {
 		schedule_delayed_work(&tcm_hcd->signal_work, 1 * HZ);
 		return;
 	}
 
-	if (mode == DATA_MODE_55) {
+	if (mode == DATA_MODE_73) {
 		syna_set_report_rate(value[0]);
 		if (tcm_hcd->pwr_state == PWR_ON && tcm_hcd->hw_if->ops_enable_irq)
 			tcm_hcd->hw_if->ops_enable_irq(tcm_hcd->hw_if, true);
 		return;
 	}
-	if (mode == DATA_MODE_60) {
+	if (mode == DATA_MODE_78) {
 		//TODO
 		return;
 	}
-	if (mode == DATA_MODE_115) {
+	if (mode == DATA_MODE_133) {
 		syna_set_ic_mode(UPDATE_IDLE_BASELINE, value);
 		return;
 	}
-	if (mode == DATA_MODE_129) {
+	if (mode == DATA_MODE_148) {
 		syna_set_ic_mode(SET_DYNAMIC_REPORT_RATE, value);
 		return;
 	}
-	if (mode == DATA_MODE_134) {
+	if (mode == DATA_MODE_153) {
 		syna_set_ic_mode(SET_THP_BASE_STATUS, value);
 		return;
 	}
-	if (mode == DATA_MODE_135) {
+	if (mode == DATA_MODE_154) {
 		syna_set_ic_mode(SET_THP_GLOVE_STATUS, value);
 		return;
 	}

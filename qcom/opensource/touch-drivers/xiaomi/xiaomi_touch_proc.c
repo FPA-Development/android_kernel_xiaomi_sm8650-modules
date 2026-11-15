@@ -23,7 +23,8 @@
 
 #define PROC_COUNT_FOR_PANEL	(4)
 #define DUMP_DATA_BUF_SIZE		(PAGE_SIZE * 3)
-#define NORMAL_DATA_BUF_SIZE	(256)
+#define NORMAL_DATA_BUF_SIZE	(350)
+
 
 typedef struct xiaomi_touch_proc_data {
 	xiaomi_touch_driver_param_t *xiaomi_touch_driver_param;
@@ -143,6 +144,10 @@ static ssize_t proc_tp_read(struct file *file, char __user *buf, size_t count, l
 		n += snprintf(xiaomi_touch_proc_data->tp_proc_result_buf + n, NORMAL_DATA_BUF_SIZE - n, "fw version: %s\n", xiaomi_touch_driver_param->hardware_param.fw_version);
 		n += snprintf(xiaomi_touch_proc_data->tp_proc_result_buf + n, NORMAL_DATA_BUF_SIZE - n, "driver version: %s\n", xiaomi_touch_driver_param->hardware_param.driver_version);
 		n += snprintf(xiaomi_touch_proc_data->tp_proc_result_buf + n, NORMAL_DATA_BUF_SIZE - n, "hal version: %s\n", xiaomi_touch_driver_param->hal_version);
+		if (xiaomi_touch_driver_param->hardware_operation.get_limit_csv_version) {
+			xiaomi_touch_driver_param->hardware_operation.get_limit_csv_version(xiaomi_touch_driver_param->limit_csv_version);
+			n += snprintf(xiaomi_touch_proc_data->tp_proc_result_buf + n, NORMAL_DATA_BUF_SIZE - n, "limit version: %s\n", xiaomi_touch_driver_param->limit_csv_version);
+		}
 		n += snprintf(xiaomi_touch_proc_data->tp_proc_result_buf + n, NORMAL_DATA_BUF_SIZE - n, "xiaomi-touch version: %s\n", XIAOMI_TOUCH_VERSION);
 		xiaomi_touch_proc_data->tp_proc_result_length = n;
 	} else if (!strncmp("tp_lockdown_info", name, 16)) {
@@ -200,22 +205,29 @@ static ssize_t proc_tp_write(struct file *file, const char __user *buf, size_t c
 
 	if (!strncmp("tp_fw_version", name, 10)) {
 		size_t temp_count = count;
-		memset(xiaomi_touch_driver_param->hal_version, 0x00, HAL_VERSION_LENGTH);
+		char temp_buf[HAL_VERSION_LENGTH];
+		memset(temp_buf, 0x00, HAL_VERSION_LENGTH);
 		if (temp_count >= HAL_VERSION_LENGTH) {
 			LOG_ERROR("write hal version length too long, current length is %zu", temp_count);
 			temp_count = HAL_VERSION_LENGTH - 1;
 		}
-		if (copy_from_user(xiaomi_touch_driver_param->hal_version, buf, temp_count)) {
+		if (copy_from_user(temp_buf, buf, temp_count)) {
 			LOG_ERROR("copy hal version to buf has error");
 			return -EFAULT;
 		}
-		LOG_INFO("hal version is %s", xiaomi_touch_driver_param->hal_version);
+		if (temp_buf[0] == 's') {
+			memset(xiaomi_touch_driver_param->hal_version, 0x00, HAL_VERSION_LENGTH);
+			memcpy(xiaomi_touch_driver_param->hal_version, temp_buf, temp_count);
+			LOG_INFO("hal version is %s", xiaomi_touch_driver_param->hal_version);
+		}
 		LOG_INFO("fw version is %s", xiaomi_touch_driver_param->hardware_param.fw_version);
 		LOG_INFO("driver version is %s", xiaomi_touch_driver_param->hardware_param.driver_version);
 		LOG_INFO("xiaomi-touch version is %s", XIAOMI_TOUCH_VERSION);
 	} else if (!strncmp("tp_selftest", name, 11)) {
 		static char self_test_cmd[64];
 		size_t temp_count = count;
+		int maxCount = 3;
+		int retry = 0;
 		memset(self_test_cmd, 0, 64);
 		if (temp_count >= 64) {
 			LOG_ERROR("write self test cmd length too long, current length is %zu", temp_count);
@@ -225,9 +237,17 @@ static ssize_t proc_tp_write(struct file *file, const char __user *buf, size_t c
 			LOG_ERROR("copy self test has error");
 			return -EFAULT;
 		}
-		if (xiaomi_touch_driver_param->hardware_operation.ic_self_test)
+		if (xiaomi_touch_driver_param->hardware_operation.ic_self_test) {
+		ic_self_test:
 			xiaomi_touch_driver_param->hardware_operation.ic_self_test(self_test_cmd, &self_test_result[touch_id]);
-		LOG_ERROR("start self test cmd: %s", self_test_cmd);
+			LOG_ERROR("start self test cmd: %s", self_test_cmd);
+			if (retry < maxCount && self_test_result[xiaomi_touch_driver_param->touch_id] != 2) {
+				LOG_ERROR("self test failed, result is %d, retry %d times", self_test_result[xiaomi_touch_driver_param->touch_id], retry);
+				retry++;
+				goto ic_self_test;
+			}
+		}
+		LOG_ERROR("self test result is %d", self_test_result[xiaomi_touch_driver_param->touch_id]);
 	}
 
 	return count;
