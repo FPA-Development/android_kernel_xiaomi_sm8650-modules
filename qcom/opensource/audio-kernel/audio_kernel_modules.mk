@@ -36,6 +36,14 @@ AUDIO_KERNEL_MODULES += $(KERNEL_MODULES_OUT)/q6_notifier_dlkm.ko\
 ifneq (,$(call is-board-platform-in-list2, volcano))
 AUDIO_KERNEL_MODULES += $(KERNEL_MODULES_OUT)/lpass_bt_swr_dlkm.ko
 endif
+ifneq (,$(filter zorn,$(word 2,$(subst _, ,$(TARGET_PRODUCT)))))
+AUDIO_KERNEL_MODULES += \
+	$(KERNEL_MODULES_OUT)/cs35l41_dlkm.ko \
+	$(KERNEL_MODULES_OUT)/tlv320aic3x_dlkm.ko \
+	$(KERNEL_MODULES_OUT)/tef668x_dlkm.ko \
+	$(KERNEL_MODULES_OUT)/sia91xx_dlkm.ko \
+	$(KERNEL_MODULES_OUT)/sia91xx_tuning_dlkm.ko
+endif
 ifeq (,$(call is-board-platform-in-list2,bengal holi blair))
 AUDIO_KERNEL_MODULES += $(KERNEL_MODULES_OUT)/swr_haptics_dlkm.ko \
 	$(KERNEL_MODULES_OUT)/hdmi_dlkm.ko \

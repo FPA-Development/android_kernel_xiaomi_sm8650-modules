@@ -9,3 +9,4 @@ header-y += msmcal-hwdep.h
 header-y += voice_params.h
 header-y += wcd-dsp-glink.h
 header-y += cs35l43.h
+header-y += cs35l41.h
