@@ -31,6 +31,9 @@ ifeq ($(CONFIG_ARCH_PINEAPPLE), y)
 	else ifneq (,$(filter y,$(CONFIG_TARGET_PRODUCT_AURORA))$(findstring aurora,$(TARGET_PRODUCT))$(findstring aurora,$(TARGET_BOOTLOADER_BOARD_NAME))$(findstring aurora,$(TARGET_DEVICE)))
 		include $(TOUCH_ROOT)/config/gki_auroratouch.conf
 		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_auroratouchconf.h
+	else ifneq (,$(filter y,$(CONFIG_TARGET_PRODUCT_ZORN))$(findstring zorn,$(TARGET_PRODUCT)))
+		include $(TOUCH_ROOT)/config/gki_zorntouch.conf
+		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_zorntouchconf.h
 	else ifneq (,$(findstring peridot,$(TARGET_PRODUCT)))
 		include $(TOUCH_ROOT)/config/gki_pineappletouch.conf
 		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_pineappletouchconf.h
@@ -353,6 +356,41 @@ ifeq ($(CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE), y)
 								./xiaomi/xiaomi_touch_device.o
 
 			obj-$(CONFIG_MSM_TOUCH) += xiaomi_touch.o
+endif
+
+ifeq ($(CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE_ZORN), y)
+	KBUILD_CPPFLAGS += -DTOUCH_THP_SUPPORT
+	KBUILD_CPPFLAGS += -DTOUCH_FOD_SUPPORT
+	KBUILD_CPPFLAGS += -DTOUCH_GESTURE_ALWAYSON_SUPPORT
+	KBUILD_CPPFLAGS += -DCMD_DATA_BUF_SIZE=256
+
+	xiaomi_touch-y := \
+		./xiaomi_zorn/xiaomi_touch_knock_data.o \
+		./xiaomi_zorn/xiaomi_touch_core.o \
+		./xiaomi_zorn/xiaomi_touch_proc.o \
+		./xiaomi_zorn/xiaomi_touch_operations.o \
+		./xiaomi_zorn/xiaomi_touch_sys.o \
+		./xiaomi_zorn/xiaomi_touch_mode.o \
+		./xiaomi_zorn/xiaomi_touch_evdev.o \
+		./xiaomi_zorn/xiaomi_touch_device.o \
+		./xiaomi_zorn/xiaomi_touch_mievent.o
+
+	obj-$(CONFIG_MSM_TOUCH) += xiaomi_touch.o
+endif
+
+ifeq ($(CONFIG_TOUCHSCREEN_FOCALTECH_3683), y)
+	focaltech_touch-y := \
+		./focaltech_3683/focaltech_core.o \
+		./focaltech_3683/focaltech_ex_fun.o \
+		./focaltech_3683/focaltech_ex_mode.o \
+		./focaltech_3683/focaltech_gesture.o \
+		./focaltech_3683/focaltech_esdcheck.o \
+		./focaltech_3683/focaltech_point_report_check.o \
+		./focaltech_3683/focaltech_flash/focaltech_upgrade_ft3683g.o \
+		./focaltech_3683/focaltech_flash.o \
+		./focaltech_3683/focaltech_spi.o
+
+	obj-$(CONFIG_MSM_TOUCH) += focaltech_touch.o
 endif
 
 CDEFINES += -DBUILD_TIMESTAMP=\"$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')\"
