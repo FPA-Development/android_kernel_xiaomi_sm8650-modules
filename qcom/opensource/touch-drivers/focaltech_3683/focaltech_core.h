@@ -68,7 +68,7 @@
 #include <linux/time64.h>
 //#include <linux/string.h>
 #include "focaltech_common.h"
-#include "../xiaomi_zorn/xiaomi_touch.h"
+#include "../xiaomi_v2/xiaomi_touch.h"
 #if FTS_TEST_EN
 #include "./focaltech_test/focaltech_test_ini.h"
 #endif
