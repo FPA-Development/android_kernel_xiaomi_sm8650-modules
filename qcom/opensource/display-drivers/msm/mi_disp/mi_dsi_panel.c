@@ -5073,6 +5073,15 @@ int mi_dsi_panel_set_disp_param(struct dsi_panel *panel,
     mi_disp_feature_event_notify_by_type(
         mi_get_disp_id(panel->type), MI_DISP_EVENT_FP, sizeof(ctl->feature_val),
         ctl->feature_val);
+    if (mi_get_panel_id_by_dsi_panel(panel) == O11_PANEL_PA &&
+        (panel->power_mode == SDE_MODE_DPMS_LP1 ||
+         panel->power_mode == SDE_MODE_DPMS_LP2) &&
+        ctl->feature_val == AUTH_STOP && mi_cfg->last_no_zero_bl_level > 0 &&
+        mi_cfg->last_no_zero_bl_level < mi_cfg->doze_hbm_dbv_level) {
+      dsi_panel_update_backlight(panel, mi_cfg->last_no_zero_bl_level);
+      DISP_INFO("update backlight %d in aod status",
+                mi_cfg->last_no_zero_bl_level);
+    }
     break;
   case DISP_FEATURE_FOLD_STATUS:
     DISP_INFO("DISP_FEATURE_FOLD_STATUS=%d\n", ctl->feature_val);
@@ -5579,6 +5588,7 @@ int mi_dsi_panel_set_nolp_locked(struct dsi_panel *panel) {
     DISP_INFO("panel already PANEL_STATE_ON, skip nolp");
     if ((mi_get_panel_id(panel->mi_cfg.mi_panel_id) == N8_PANEL_PA) ||
         (mi_get_panel_id(panel->mi_cfg.mi_panel_id) == N8_PANEL_SA) ||
+        (mi_get_panel_id(panel->mi_cfg.mi_panel_id) == O11_PANEL_PA) ||
         (mi_get_panel_id(panel->mi_cfg.mi_panel_id) == N18_PANEL_PA) ||
         (mi_get_panel_id(panel->mi_cfg.mi_panel_id) == N18_PANEL_SA)) {
       panel->mi_cfg.aod_status = false;
@@ -5604,6 +5614,7 @@ int mi_dsi_panel_set_nolp_locked(struct dsi_panel *panel) {
 
   if ((mi_get_panel_id(panel->mi_cfg.mi_panel_id) == N8_PANEL_PA) ||
       (mi_get_panel_id(panel->mi_cfg.mi_panel_id) == N8_PANEL_SA) ||
+      (mi_get_panel_id(panel->mi_cfg.mi_panel_id) == O11_PANEL_PA) ||
       (mi_get_panel_id(panel->mi_cfg.mi_panel_id) == N18_PANEL_PA) ||
       (mi_get_panel_id(panel->mi_cfg.mi_panel_id) == N18_PANEL_SA)) {
     if (panel->mi_cfg.aod_status) {

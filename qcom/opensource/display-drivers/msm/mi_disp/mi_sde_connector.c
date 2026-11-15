@@ -357,7 +357,10 @@ int mi_sde_connector_check_layer_flags(struct drm_connector *connector) {
       return ret;
     }
 
-    if (flags.gxzw_anim_changed) {
+    if (flags.gxzw_anim_changed ||
+        (mi_get_panel_id_by_dsi_panel(display->panel) == O11_PANEL_PA &&
+         flags.gxzw_anim_present && display &&
+         display->panel->mi_cfg.panel_state != PANEL_STATE_ON)) {
       DISP_INFO("layer gxzw_anim = %d\n", flags.gxzw_anim_present);
       if ((display && mi_disp_lhbm_fod_enabled(display->panel)) ||
           mi_get_panel_id_by_dsi_panel(display->panel) == O11_PANEL_PA) {
