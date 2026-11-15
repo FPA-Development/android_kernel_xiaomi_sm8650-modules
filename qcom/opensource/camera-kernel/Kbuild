@@ -345,3 +345,16 @@ cameralog-y := drivers/cam_log/cam_log.o
 obj-m += cameralog.o
 BOARD_VENDOR_KERNEL_MODULES += $(KERNEL_MODULES_OUT)/cameralog.ko
 # END Camera_CameraSkyNet
+
+# MIUI ADD: Camera_CameraOpt
+cameramsger-y := \
+	drivers/cam_msger/cam_msger.o \
+	drivers/cam_msger/cam_sched.o \
+	drivers/cam_msger/cam_pid.o \
+	drivers/cam_msger/cam_binder.o \
+	drivers/cam_msger/cam_msger_common.o
+
+obj-m += cameramsger.o
+BOARD_VENDOR_KERNEL_MODULES += $(KERNEL_MODULES_OUT)/cameramsger.ko
+CFLAGS_drivers/cam_msger/cam_msger.o += -Wframe-larger-than=4096
+# END Camera_CameraOpt
