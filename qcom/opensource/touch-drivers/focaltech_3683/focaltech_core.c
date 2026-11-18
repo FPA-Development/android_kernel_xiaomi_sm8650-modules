@@ -4565,7 +4565,8 @@ static int fts_ts_resume(struct device *dev)
 #ifndef CONFIG_FACTORY_BUILD
 #ifdef FTS_TOUCHSCREEN_FOD
 	FTS_INFO("%s finger_in_fod:%d fod_finger_skip:%d\n", __func__, ts_data->finger_in_fod, ts_data->fod_finger_skip);
-	if (!ts_data->finger_in_fod && !ts_data->fod_finger_skip) {
+	if (ts_data->poweroff_on_sleep ||
+	    (!ts_data->finger_in_fod && !ts_data->fod_finger_skip)) {
 		FTS_INFO("resume reset");
 		fts_reset_proc(40);
 		fts_recover_after_reset();
