@@ -264,10 +264,11 @@ CREATE_ATTR(fod_longpress_gesture_enabled, {
 		if (!input) {
 			xiaomi_touch_driver_param_t *xiaomi_touch_driver_param = get_xiaomi_touch_driver_param(TOUCH_ID);
 			if (xiaomi_touch_driver_param && xiaomi_touch_driver_param->hardware_operation.ic_set_fod_value) {
-				s32 info[FOD_VALUE_LEN];
+				s32 info[FOD_VALUE_LEN] = { 0 };
 				info[0] = 0x81; // GESTURE_TOUCH_AND_HOLD_UP_EVENT
 				xiaomi_touch_driver_param->hardware_operation.ic_set_fod_value(info, FOD_VALUE_LEN);
 			}
+			update_fod_press_status(0);
 		}
 
 		return count;
