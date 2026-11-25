@@ -709,6 +709,7 @@ void fts_release_all_finger(void)
 #ifdef FTS_TOUCHSCREEN_FOD
 	fts_data->finger_in_fod = false;
 	fts_data->overlap_area = 0;
+	update_fod_press_status(0);
 	FTS_INFO("%s : finger_in_fod = %d", __func__, fts_data->finger_in_fod);
 #endif
 
@@ -723,6 +724,7 @@ void fts_release_all_finger(void)
     input_mt_sync(input_dev);
 #endif
     input_report_key(input_dev, BTN_TOUCH, 0);
+    input_report_key(input_dev, BTN_TOOL_FINGER, 0);
 #ifdef CONFIG_TOUCH_BOOST
     lpm_disable_for_dev(false, LPM_EVENT_INPUT);
 #endif
@@ -1080,6 +1082,12 @@ static int fts_read_and_report_foddata(struct fts_ts_data *data)
 		buf[0], buf[1], buf[2], buf[3], buf[8], x, y, SUPER_RESOLUTION_FACOTR);
 		if (buf[8] == 0) {
 			mutex_lock(&data->report_mutex);
+			data->fod_status = driver_get_touch_mode(TOUCH_ID, DATA_MODE_10);
+			if (data->suspended && data->fod_status == 0) {
+				FTS_INFO("Panel off and fod status : %d, don't report touch down event\n", data->fod_status);
+				mutex_unlock(&data->report_mutex);
+				return 0;
+			}
 			if (!data->fod_finger_skip)
 				data->overlap_area = 100;
 			if (data->old_point_id != buf[0]) {
@@ -1089,12 +1097,6 @@ static int fts_read_and_report_foddata(struct fts_ts_data *data)
 					data->point_id_changed = true;
 			}
 			data->finger_in_fod = true;
-			data->fod_status = driver_get_touch_mode(TOUCH_ID, DATA_MODE_10);
-			if (data->suspended && data->fod_status == 0) {
-				FTS_INFO("Panel off and fod status : %d, don't report touch down event\n", data->fod_status);
-				mutex_unlock(&data->report_mutex);
-				return 0;
-			}
 			data->nonui_status = driver_get_touch_mode(TOUCH_ID, DATA_MODE_17);
 			if (data->nonui_status == 2) {
 				FTS_INFO("nonui_status is two, don't report 152\n");
@@ -2503,6 +2505,26 @@ static void fts_xiaomi_touch_fod_test(int value)
 	}
 }
 #endif
+#ifdef TOUCH_FOD_SUPPORT
+static void fts_set_fod_value(s32 *value, int length)
+{
+	struct fts_ts_data *ts_data = fts_data;
+
+	if (!ts_data || !value || length < 1)
+		return;
+
+	if (value[0] == 0x81) {
+		if (ts_data->suspended && ts_data->finger_in_fod) {
+			ts_data->fod_finger_skip = false;
+			ts_data->old_point_id = 0xff;
+			ts_data->point_id_changed = false;
+			fts_release_all_finger();
+		} else {
+			update_fod_press_status(0);
+		}
+	}
+}
+#endif
 #ifdef FTS_XIAOMI_TOUCHFEATURE
 
 hardware_operation_t hardware_operation;
@@ -3129,12 +3151,10 @@ static void fts_ic_switch_mode(u8 _gesture_type)
 		} else if (!ts_data->poweroff_on_sleep && ts_data->gesture_support) {
 		// gesture -> gesture
 			fts_write_reg(FTS_GESTURE_CTRL, ts_data->gesture_cmd);
-			if (ts_data->fod_status) {
-				if (ts_data->gesture_status & (1 << GESTURE_FOD))
-					fts_fod_recovery();
-				else
-					fts_fod_reg_write(FTS_REG_GESTURE_FOD_ON, false);
-			}
+			if (ts_data->gesture_status & (1 << GESTURE_FOD))
+				fts_fod_recovery();
+			else
+				fts_fod_reg_write(FTS_REG_GESTURE_FOD_ON, false);
 		}
 	}
 
@@ -4169,6 +4189,7 @@ void fts_init_xiaomi_touchfeature_v3(struct fts_ts_data *ts_data)
 	hardware_operation.ic_resume_suspend = fts_resume_suspend;
 	hardware_operation.ic_set_charge_state = fts_set_charge_state;
 #ifdef TOUCH_FOD_SUPPORT
+	hardware_operation.ic_set_fod_value = fts_set_fod_value;
 	hardware_operation.xiaomi_touch_fod_test = fts_xiaomi_touch_fod_test;
 #endif
 #ifdef TOUCH_MULTI_PANEL_NOTIFIER_SUPPORT

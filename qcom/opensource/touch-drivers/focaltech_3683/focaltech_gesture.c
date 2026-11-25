@@ -404,7 +404,8 @@ void fts_fod_recovery(void)
 	if (fts_data->suspended) {
 		FTS_INFO("%s, tp is in suspend mode, write 0xD0 to 1, 0xD1 to 0x%x", __func__, fts_data->gesture_cmd);
 		fts_gesture_reg_write(FTS_REG_GESTURE_DOUBLETAP_ON, true);
-        fts_write_reg(FTS_GESTURE_CTRL, fts_data->gesture_cmd);
+		fts_write_reg(FTS_GESTURE_CTRL, fts_data->gesture_cmd);
+		fts_fod_reg_write(FTS_REG_GESTURE_DOUBLETAP_ON, true);
 	}
 	fts_fod_reg_write(FTS_REG_GESTURE_FOD_ON, true);
 	FTS_FUNC_EXIT();
